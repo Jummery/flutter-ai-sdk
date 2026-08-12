@@ -1,0 +1,12 @@
+name: flutter_ai_storage
+description: Storage layer for Flutter AI SDK using Drift.
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+# Dependencies will be expanded when Drift implementation is added.
+dependencies:
+  flutter:
+    sdk: flutter
