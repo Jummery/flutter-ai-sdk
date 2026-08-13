@@ -7,19 +7,12 @@ import '../database/ai_database.dart';
 /// The chat runtime depends on this abstraction rather than directly on
 /// Drift tables or generated database rows.
 class StorageRepository {
-  StorageRepository({
-    required ConversationDao conversations,
-    required MessageDao messages,
-  })  : _conversations = conversations,
-        _messages = messages;
+  StorageRepository({required AIDatabase database})
+      : _database = database,
+        _conversations = ConversationDao(database),
+        _messages = MessageDao(database);
 
-  factory StorageRepository.fromDatabase(AIDatabase database) {
-    return StorageRepository(
-      conversations: ConversationDao(database),
-      messages: MessageDao(database),
-    );
-  }
-
+  final AIDatabase _database;
   final ConversationDao _conversations;
   final MessageDao _messages;
 
@@ -31,9 +24,12 @@ class StorageRepository {
     return _conversations.insertConversation(entry);
   }
 
-  Future<int> deleteConversation(String id) async {
-    await _messages.deleteByConversation(id);
-    return _conversations.deleteConversation(id);
+  /// Deletes a conversation and all of its messages atomically.
+  Future<int> deleteConversation(String id) {
+    return _database.transaction(() async {
+      await _messages.deleteByConversation(id);
+      return _conversations.deleteConversation(id);
+    });
   }
 
   Future<List<Message>> getMessages(String conversationId) {
